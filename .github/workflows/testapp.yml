@@ -36,8 +36,7 @@ jobs:
         path: ./dist/release.zip
     
 	
-		
-  deploy:
+	deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
