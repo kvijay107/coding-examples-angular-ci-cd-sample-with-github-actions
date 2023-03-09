@@ -22,9 +22,9 @@ jobs:
         
     - name: npm install, build, and test
       run: |
-        npm install @angular/animations@latest --save --force
+        npm install 
         npm i --force
-        npm run build
+        npm run build --if-present
     - name: Zip artifact for deployment
       run: |
           cd dist
@@ -34,8 +34,10 @@ jobs:
       with:
         name: node-app
         path: ./dist/release.zip
-
+    
+	
   deploy:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Download artifact from build job
