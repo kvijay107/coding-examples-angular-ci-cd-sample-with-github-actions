@@ -34,9 +34,7 @@ jobs:
       with:
         name: node-app
         path: ./dist/release.zip
-    
-	
-	deploy:
+  deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
