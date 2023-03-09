@@ -1,0 +1,76 @@
+name: Angular CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+		cache: "npm"
+        
+    - run: npm ci
+	- run: npm install @angular/animations@latest --save --force
+	- run: npm i --force
+	- run: npm run build
+    - name: Zip artifact for deployment
+	  run: |
+		cd dist
+		zip release.zip ./* -r
+	- name: Upload artifact for deployment job
+      uses: actions/upload-artifact@v3
+      with:
+        name: node-app
+        path: ./dist/release.zip
+    
+	
+		
+	name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v3
+        with:
+          name: angular-app
+
+      - name: unzip artifact for deployment
+        run: unzip release.zip
+
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+
+      - name: Send SSM Run Command to EC2 instance
+        uses: shirshak55/ssm-run-command@v2
+        with:
+          document: AWS-RunShellScript
+          instanceIds: i-01546590676a92d0a # Replace with your instance ID
+          commands: |
+            sudo su
+            cd /var/www/html
+            rm -rf *
+            scp ./dist/release.zip ec2-user@ec2-100-25-181-249.compute-1.amazonaws.com:/home/ec2-user/artifact.zip
+            service httpd restart
