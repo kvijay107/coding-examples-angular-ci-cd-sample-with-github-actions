@@ -9,22 +9,19 @@ on:
 
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [14.x]
-
     steps:
-		- uses: actions/checkout@v2
-	  - name: Use Node.js ${{ matrix.node-version }}
-		  uses: actions/setup-node@v2
-		  with:
-        node-version: ${{ matrix.node-version }}
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
         cache: "npm"
-	  - name: build steps
-     	  run: |
-        npm ci
+        cache-dependency-path: package-lock.json
+        
+    - name: npm install, build, and test
+      run: |
         npm install @angular/animations@latest --save --force
         npm i --force
         npm run build
